@@ -281,19 +281,26 @@ def map_explorer(raster: np.ndarray, bounds: tuple, crs: str, resolution: float 
             "Esri",
         ),
     }
-    tile_url, attribution = tiles[basemap]
-    m = folium.Map(location=center, zoom_start=12, tiles=tile_url, attr=attribution)
-    if show_overlay and selected:
-        folium.raster_layers.ImageOverlay(
-            image=raster_rgba(raster, selected),
-            bounds=[[south, west], [north, east]],
-            opacity=opacity,
-            interactive=True,
-            cross_origin=False,
-            name="AI land-cover classification",
-        ).add_to(m)
-    folium.LayerControl().add_to(m)
-    map_state = st_folium(m, width=None, height=610, returned_objects=["last_clicked"], key=f"map-{reset_map}")
+    with st.spinner("Loading Kampala map and classification overlay...", show_time=True):
+        tile_url, attribution = tiles[basemap]
+        m = folium.Map(location=center, zoom_start=12, tiles=tile_url, attr=attribution)
+        if show_overlay and selected:
+            folium.raster_layers.ImageOverlay(
+                image=raster_rgba(raster, selected),
+                bounds=[[south, west], [north, east]],
+                opacity=opacity,
+                interactive=True,
+                cross_origin=False,
+                name="AI land-cover classification",
+            ).add_to(m)
+        folium.LayerControl().add_to(m)
+        map_state = st_folium(
+            m,
+            width=None,
+            height=610,
+            returned_objects=["last_clicked"],
+            key=f"map-{reset_map}",
+        )
     clicked = map_state.get("last_clicked")
     if clicked:
         inspected = inspect_raster_cell(raster, bounds, clicked["lat"], clicked["lng"])
